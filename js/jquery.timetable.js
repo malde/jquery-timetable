@@ -24,15 +24,15 @@
         return (duration / 5) * fiveMinuteWidth;
     };
 
-    var _calcOffset = function (time, hourWidth) {
+    var _calcOffset = function (time, hourWidth, firstHour) {
         var fiveMinuteWidth = (hourWidth / 60) * 5;
 
         var timearray = time.split(':');
         var hours = parseInt(timearray[0], 10),
             minutes = parseInt(timearray[1], 10);
 
-        hours = hours < 11 ? hours + 24 : hours; // TODO hartkodierte 12 konfigurierbar machen
-        return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (11 * hourWidth);  // TODO tagesstartzeit (atm 12:00)
+        hours = hours < firstHour ? hours + 24 : hours;
+        return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (firstHour * hourWidth);
     };
 
     Plugin.prototype = {
@@ -95,7 +95,7 @@
 
             for (var i = options.firstHour + 1; i < options.lastHour + 24; i++) {
                 var time = (i > 24 ? i - 24 : (i == 24 ? '00' : i)) + ':00';
-                var offset = _calcOffset(time, options.hourWidth);
+                var offset = _calcOffset(time, options.hourWidth, options.firstHour);
 
                 var $time = $('<div/>').append(time).css({
                     'left': offset + 'px'
@@ -124,7 +124,7 @@
         },
 
         createArtist: function (el, options, artist) {
-            var offset = _calcOffset(artist.time, options.hourWidth);
+            var offset = _calcOffset(artist.time, options.hourWidth, options.firstHour);
             var width = _calcWidth(artist.duration, options.hourWidth);
 
             var $div = $('<div/>').addClass('artist');
