@@ -3,7 +3,8 @@
 
     var pluginName = "timetable",
         defaults = {
-            startTime: "12:00",
+            firstHour: 12,
+            lastHour: 2,
             hourWidth: 120
         };
 
@@ -30,8 +31,8 @@
         var hours = parseInt(timearray[0], 10),
             minutes = parseInt(timearray[1], 10);
 
-        hours = hours < 12 ? hours + 24 : hours; // TODO hartkodierte 12 konfigurierbar machen
-        return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (12 * hourWidth);  // TODO tagesstartzeit (atm 12:00)
+        hours = hours < 11 ? hours + 24 : hours; // TODO hartkodierte 12 konfigurierbar machen
+        return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (11 * hourWidth);  // TODO tagesstartzeit (atm 12:00)
     };
 
     Plugin.prototype = {
@@ -45,7 +46,7 @@
 
             var plugin = this;
 
-            $.getJSON("hurricane.json", function(json) {
+            $.getJSON("hurricane.json", function (json) {
                 var $festival = plugin.createFestival(plugin.element, plugin.options, json);
 
                 $(plugin.element).append($festival);
@@ -72,26 +73,47 @@
         createDay: function (el, options, day) {
             var stages = day.stages;
 
-            var $div = $('<div/>').addClass('day');
-            $div.append(day.name);
+            var $day = $('<fieldset/>').addClass('day');
+            var $legend = $('<legend/>').append(day.name);
+            $day.append($legend);
+
+            var $times = this.createTimes(el, options);
+            $day.append($times);
 
             for (var i = 0; i < stages.length; i++) {
                 var stage = stages[i];
                 var $stage = this.createStage(el, options, stage);
 
-                $div.append($stage);
+                $day.append($stage);
             }
 
-            return $div;
+            return $day;
+        },
+
+        createTimes: function (el, options) {
+            var $times = $('<div/>').addClass('times');
+
+            for (var i = options.firstHour + 1; i < options.lastHour + 24; i++) {
+                var time = (i > 24 ? i - 24 : (i == 24 ? '00' : i)) + ':00';
+                var offset = _calcOffset(time, options.hourWidth);
+
+                var $time = $('<div/>').append(time).css({
+                    'left': offset + 'px'
+                }).addClass('time');
+
+                $times.append($time);
+            }
+
+            return $times;
         },
 
         createStage: function (el, options, stage) {
             var artists = stage.artists;
 
-            var $div = $('<div/>').addClass('stage');
+            var $div = $('<div/>').addClass('stage').addClass(stage.id);
             $div.append(stage.name);
 
-            for(var i = 0; i < artists.length; i++) {
+            for (var i = 0; i < artists.length; i++) {
                 var artist = artists[i];
                 var $artist = this.createArtist(el, options, artist);
 
