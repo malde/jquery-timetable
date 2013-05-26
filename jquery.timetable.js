@@ -6,7 +6,9 @@
             lastHour: 2,
             hourWidth: 120,
             file: ''
-        };
+        },
+        _storageKey = "jq.festival.timetable",
+        _selectedArtists = [];
 
     function Plugin(element, options) {
         this.element = element;
@@ -35,11 +37,38 @@
         return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (firstHour * hourWidth);
     };
 
+    var _loadFromStore = function() {
+        var storedValue = localStorage.getItem(_storageKey);
+        return JSON.parse(storedValue);
+    };
+
+    var _saveToStore = function(value) {
+        localStorage.setItem(_storageKey, JSON.stringify(value));
+    };
+
+    var _toggleArtist = function(artistId) {
+        var artists = _loadFromStore() || [];
+        var index = artists.indexOf(artistId);
+        var selected = true;
+        if (index > -1) {
+            selected = false;
+            artists.splice(index, 1);
+            _saveToStore(artists);
+        }
+        else {
+            artists.push(artistId);
+            _saveToStore(artists);
+        }
+
+        $('#'+artistId).toggleClass('selected');
+        $('input[value="'+artistId+'"]').prop('checked', selected);
+    };
+
     Plugin.prototype = {
 
         init: function () {
             var plugin = this;
-
+            _selectedArtists = _loadFromStore();
             var src = plugin.options.file;
             $.getJSON(src, function (json) {
                 var $headline = $('<h1/>').append(json.name);
@@ -65,9 +94,12 @@
                         var artist = artists[h];
 
                         var $input = $('<input/>').attr('type', 'checkbox').attr('value', artist.id);
+                        if (_selectedArtists.indexOf(artist.id) > -1) {
+                            $input.prop('checked', true);
+                        }
                         $input.change(function (e) {
                             var val = $(this).val();
-                            $('#' + val).toggleClass('selected');
+                            _toggleArtist(val);
                         });
 
                         var $label = $('<label/>').append($input).append(artist.name);
@@ -154,13 +186,15 @@
             var offset = _calcOffset(artist.time, options.hourWidth, options.firstHour);
             var width = _calcWidth(artist.duration, options.hourWidth);
 
-            var $div = $('<div/>').addClass('artist');
-            $div.attr('id', artist.id);
-            $div.append(artist.name);
-            $div.css({
+            var $div = $('<div/>').addClass('artist').attr('id', artist.id).append(artist.name).css({
                 'width': width + 'px',
                 'left': offset + 'px'
+            }).click(function(e) {
+                _toggleArtist(artist.id);
             });
+            if (_selectedArtists.indexOf(artist.id) > -1) {
+                $div.addClass('selected');
+            }
 
             return $div;
         }
