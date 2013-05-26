@@ -46,7 +46,7 @@
 
     var _loadFromStore = function() {
         var storedValue = localStorage.getItem(_storageKey);
-        return JSON.parse(storedValue);
+        return JSON.parse(storedValue) || [];
     };
 
     var _saveToStore = function(value) {
