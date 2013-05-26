@@ -1,11 +1,11 @@
-;
-(function ($, window, document, undefined) {
+;(function ($, window, document, undefined) {
 
     var pluginName = "timetable",
         defaults = {
             firstHour: 12,
             lastHour: 2,
-            hourWidth: 120
+            hourWidth: 120,
+            file: ''
         };
 
     function Plugin(element, options) {
@@ -21,7 +21,7 @@
 
     var _calcWidth = function (duration, hourWidth) {
         var fiveMinuteWidth = (hourWidth / 60) * 5;
-        return (duration / 5) * fiveMinuteWidth;
+        return ((duration / 5) * fiveMinuteWidth) - 11; // I don't understand why, but the 11 has to be substracted
     };
 
     var _calcOffset = function (time, hourWidth, firstHour) {
@@ -38,27 +38,53 @@
     Plugin.prototype = {
 
         init: function () {
-            // Place initialization logic here
-            // You already have access to the DOM element and
-            // the options via the instance, e.g. this.element
-            // and this.options
-            // you can add more functions like the one below and
-
             var plugin = this;
 
-            $.getJSON("hurricane.json", function (json) {
+            var src = plugin.options.file;
+            $.getJSON(src, function (json) {
+                var $headline = $('<h1/>').append(json.name);
+                var $selections = plugin.createSelection(plugin.element, plugin.options, json);
                 var $festival = plugin.createFestival(plugin.element, plugin.options, json);
 
-                $(plugin.element).append($festival);
+                $(plugin.element).append($headline).append($selections).append($festival);
             });
+        },
 
+        createSelection: function (el, options, festival) {
+            var $checkboxes = $('<div/>').addClass('selections');
+
+            var days = festival.days;
+
+            for (var i = 0; i < days.length; i++) {
+                var stages = days[i].stages;
+
+                for (var j = 0; j < stages.length; j++) {
+                    var artists = stages[j].artists;
+
+                    for (var h = 0; h < artists.length; h++) {
+                        var artist = artists[h];
+
+                        var $input = $('<input/>').attr('type', 'checkbox').attr('value', artist.id);
+                        $input.change(function (e) {
+                            var val = $(this).val();
+                            console.log(val);
+                            $('#' + val).toggleClass('selected');
+                            console.log($(val));
+                        });
+
+                        var $label = $('<label/>').append($input).append(artist.name);
+                        $checkboxes.append($label);
+                    }
+                }
+            }
+
+            return $checkboxes;
         },
 
         createFestival: function (el, options, festival) {
             var days = festival.days;
 
             var $div = $('<div/>').addClass('festival');
-            $div.append(festival.name);
 
             for (var i = 0; i < days.length; i++) {
                 var day = days[i];
@@ -72,8 +98,11 @@
 
         createDay: function (el, options, day) {
             var stages = day.stages;
-
-            var $day = $('<fieldset/>').addClass('day');
+            var hourPx = options.hourWidth;
+            var $day = $('<fieldset/>').addClass('day').css({
+                'background-size': hourPx + 'px',
+                'background-image': 'repeating-linear-gradient(-90deg, lightgrey, lightgrey 1px, transparent 1px, transparent ' + hourPx + 'px)'
+            });
             var $legend = $('<legend/>').append(day.name);
             $day.append($legend);
 
