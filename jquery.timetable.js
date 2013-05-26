@@ -1,3 +1,10 @@
+/*!
+ * jQuery Festival Timetable Plugin
+ * https://github.com/malde/jquery-timetable
+ *
+ * Copyright 2013 Malte Klemke
+ * Released under the MIT license
+ */
 ;(function ($, window, document, undefined) {
 
     var pluginName = "timetable",
