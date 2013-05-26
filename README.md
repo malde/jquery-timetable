@@ -1,8 +1,15 @@
 # jQuery Festival Timetable Plugin
 
-This plugin creates an timetable for each day and stages of a festival.
+This plugin creates an timetable for each day and stages of a festival. It also saves the selection in localStorage so it's still available to users after returning to the page.
 
 ## jQuery Usage
+
+Include the plugin somewhere in your page along with jQuery itself:
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <script src="js/jquery.timetable.js"></script>
+
+Use the plugin on a container of your choosing:
 
     $('#timetable').timetable({
         'hourWidth': 90,        // the width an hour should be in pixels
@@ -67,3 +74,8 @@ Each day and stage should be named. The data for an artist has 4 fields, an uniq
 ## Design / CSS
 
 There are a few examples in the `/examples`-folder, but you should provide your own css (maybe use one of the examples as a starting point).
+
+## Requirements
+
+JSON in the Browser (so no legacy IE), basic HTML5 capabilities (eg. webStorage, so once again, no legacy IE).
+jQuery somewhere in the page, should work with version 1.6 and upward, you should however use 2.0, since legacy IE will not work anyway.
