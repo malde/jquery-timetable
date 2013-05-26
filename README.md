@@ -2,6 +2,8 @@
 
 This plugin creates an timetable for each day and stages of a festival. It also saves the selection in localStorage so it's still available to users after returning to the page.
 
+Demo available at [malde.me/hurricane/](http://malde.me/hurricane/ "Hurricane 2013")
+
 ## jQuery Usage
 
 Include the plugin somewhere in your page along with jQuery itself:
