@@ -54,7 +54,7 @@
     };
 
     var _toggleArtist = function(artistId) {
-        var artists = _loadFromStore() || [];
+        var artists = _loadFromStore();
         var index = artists.indexOf(artistId);
         var selected = true;
         if (index > -1) {
