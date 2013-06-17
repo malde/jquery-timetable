@@ -11,11 +11,11 @@
         defaults = {
             firstHour: 12,
             lastHour: 2,
-            hourWidth: 120,
             file: ''
         },
         _storageKey = "jq.festival.timetable",
-        _selectedArtists = [];
+        _selectedArtists = [],
+        _totalHours = 0;
 
     function Plugin(element, options) {
         this.element = element;
@@ -28,20 +28,26 @@
         this.init();
     }
 
-    var _calcWidth = function (duration, hourWidth) {
+    var _calcWidth = function (duration, opts) {
+        var hourWidth = ($(document).width() / _totalHours) - 1;
+
         var fiveMinuteWidth = (hourWidth / 60) * 5;
-        return ((duration / 5) * fiveMinuteWidth) - 11; // I don't understand why, but the 11 has to be substracted
+
+        return ((((duration / 5) * fiveMinuteWidth) - 11) / $(document).width()) * 100;
     };
 
-    var _calcOffset = function (time, hourWidth, firstHour) {
+    var _calcOffset = function (time, opts) {
+        var hourWidth = ($(document).width() / _totalHours) - 1;
+
         var fiveMinuteWidth = (hourWidth / 60) * 5;
 
         var timearray = time.split(':');
         var hours = parseInt(timearray[0], 10),
             minutes = parseInt(timearray[1], 10);
 
-        hours = hours < firstHour ? hours + 24 : hours;
-        return (hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (firstHour * hourWidth);
+        hours = hours < opts.firstHour ? hours + 24 : hours;
+
+        return (((hours * hourWidth + (minutes / 5) * fiveMinuteWidth) - (opts.firstHour * hourWidth)) / $(document).width()) * 100;
     };
 
     var _loadFromStore = function() {
@@ -76,6 +82,9 @@
         init: function () {
             var plugin = this;
             _selectedArtists = _loadFromStore();
+            _totalHours = plugin.options.lastHour < 24 ? (plugin.options.lastHour + 24) - plugin.options.firstHour :
+                plugin.options.lastHour - plugin.options.firstHour;
+
             var src = plugin.options.file;
             $.getJSON(src, function (json) {
                 var $headline = $('<h1/>').append(json.name);
@@ -135,11 +144,7 @@
 
         createDay: function (el, options, day) {
             var stages = day.stages;
-            var hourPx = options.hourWidth;
-            var $day = $('<fieldset/>').addClass('day').css({
-                'background-size': hourPx + 'px',
-                'background-image': 'repeating-linear-gradient(-90deg, lightgrey, lightgrey 1px, transparent 1px, transparent ' + hourPx + 'px)'
-            });
+            var $day = $('<fieldset/>').addClass('day');
             var $legend = $('<legend/>').append(day.name);
             $day.append($legend);
 
@@ -161,10 +166,10 @@
 
             for (var i = options.firstHour + 1; i < options.lastHour + 24; i++) {
                 var time = (i > 24 ? i - 24 : (i == 24 ? '00' : i)) + ':00';
-                var offset = _calcOffset(time, options.hourWidth, options.firstHour);
+                var offset = _calcOffset(time, options);
 
                 var $time = $('<div/>').append(time).css({
-                    'left': offset + 'px'
+                    'left': offset + '%'
                 }).addClass('time');
 
                 $times.append($time);
@@ -190,12 +195,12 @@
         },
 
         createArtist: function (el, options, artist) {
-            var offset = _calcOffset(artist.time, options.hourWidth, options.firstHour);
-            var width = _calcWidth(artist.duration, options.hourWidth);
+            var offset = _calcOffset(artist.time, options);
+            var width = _calcWidth(artist.duration, options);
 
             var $div = $('<div/>').addClass('artist').attr('id', artist.id).append(artist.name).css({
-                'width': width + 'px',
-                'left': offset + 'px'
+                'width': width + '%',
+                'left': offset + '%'
             }).click(function(e) {
                 _toggleArtist(artist.id);
             });
