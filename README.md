@@ -14,7 +14,6 @@ Include the plugin somewhere in your page along with jQuery itself:
 Use the plugin on a container of your choosing:
 
     $('#timetable').timetable({
-        'hourWidth': 90,        // the width an hour should be in pixels
         'firstHour': 11,        // the hour after which the performances are starting
         'lastHour': 2,          // the hour after the last performance of a day
         'file': 'festival.json' // the file containing the JSON data describing the festival (should be on the same domain)
